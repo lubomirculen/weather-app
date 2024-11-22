@@ -5,6 +5,8 @@ import ZipCodeForm from '@/components/ZipCodeForm';
 
 // Server-side homepage component
 export default function HomePage() {
+
+    console.log('API Key:', process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY);
     return (
         <div className="bg-light py-10">
             <div className="container">
