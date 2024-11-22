@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+    env: {
+        OPENWEATHER_IMAGE_BASE_URL: 'http://openweathermap.org/img/wn/', // Base URL for OpenWeather icons
+    },
     images: {
         remotePatterns: [
             {

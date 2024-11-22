@@ -1,88 +1,101 @@
-// src/app/weather/[zip]/page.tsx
-
-import React from 'react';
+// app/weather/[zip]/page.tsx
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
-type WeatherDescription = {
+// Define types for the OpenWeather API response
+interface Weather {
     description: string;
     icon: string;
-};
-
-type WeatherMain = {
-    temp: number;
-};
-
-type WeatherListItem = {
-    dt: number; // Timestamp of the forecast
-    main: WeatherMain; // Temperature information
-    weather: WeatherDescription[]; // Array of weather descriptions
-};
-
-type WeatherDataResponse = {
-    list: WeatherListItem[]; // List of weather data points
-};
-
-// Server-side function that fetches the weather data
-async function fetchWeatherData(zip: string): Promise<WeatherListItem[]> {
-    const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
-
-    if (!apiKey) {
-        throw new Error('API key is missing!');
-    }
-
-    const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?zip=${zip},us&units=imperial&appid=${apiKey}`
-    );
-
-    const data: WeatherDataResponse = await response.json();
-
-    if (!data.list) {
-        throw new Error('Weather data not available');
-    }
-
-    return data.list; // Return the list of weather data points
 }
 
-// This is the component that will render the page
-export default async function WeatherPage({ params }: { params: { zip: string } }) {
-    const { zip } = params;
+interface Main {
+    temp: number;
+}
 
-    // Fetch the weather data for the zip code
-    const weatherData = await fetchWeatherData(zip);
+interface Forecast {
+    dt: number; // Unix timestamp
+    weather: Weather[];
+    main: Main;
+}
+
+const WeatherPage = async ({ params }: { params: { zip: string } }) => {
+    const zip = params.zip;
+
+    console.log('Fetching forecast for zip:', zip); // Log the zip code
+
+    // Fetch the 5-day forecast data from OpenWeather API
+    const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?zip=${zip},us&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}&units=imperial`
+    );
+
+    if (!response.ok) {
+        console.error('Failed to fetch forecast data:', response.statusText); // Log the error
+        return notFound(); // Return a 404 page if the forecast data is not found
+    }
+
+    const data = await response.json();
+    console.log('API forecast data:', data); // Log the full API response for inspection
+
+    // Check if data is as expected
+    if (!data || !data.list || data.list.length === 0) {
+        console.error('Invalid forecast data:', data); // Log invalid data response
+        return notFound(); // Return 404 if data structure is invalid
+    }
+
+    // Group the forecast data by day
+    const groupedByDay = data.list.reduce((acc: { [key: string]: Forecast[] }, current: Forecast) => {
+        const date = new Date(current.dt * 1000);
+        const day = date.toLocaleDateString(); // Group by the day (e.g., '10/30/2024')
+
+        if (!acc[day]) {
+            acc[day] = [];
+        }
+        acc[day].push(current);
+        return acc;
+    }, {});
 
     return (
-        <div className="bg-light py-10">
-            <div className="container">
-                <h1 className="text-center">{`Weather Forecast for ${zip}`}</h1>
+        <div>
+            <h2>Weather Forecast for {zip}</h2>
 
-                {/* Static link to navigate back to homepage */}
-                <div className="back-button-container">
-                    <Link href="/" className="back-button">
-                        &larr; Back to Home
-                    </Link>
-                </div>
-
-                <div className="grid">
-                    {weatherData.map((weather) => {
-                        const date = new Date(weather.dt * 1000); // Convert timestamp to readable date
-                        return (
-                            <div className="weather-card" key={weather.dt}>
-                                <Image
-                                    src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
-                                    alt={weather.weather[0].description}
-                                    width={100}
-                                    height={100}
-                                    priority
-                                />
-                                <h3>{date.toLocaleString()}</h3>
-                                <p className="temp">{weather.main.temp}°F</p>
-                                <p className="description">{weather.weather[0].description}</p>
-                            </div>
-                        );
-                    })}
-                </div>
+            {/* Static link to navigate back to homepage */}
+            <div className="back-button-container">
+                <Link href="/" className="back-button">
+                    &larr; Back to Home
+                </Link>
             </div>
+
+            {/* Display the forecast for each day */}
+            {Object.keys(groupedByDay).map((day) => {
+                const forecasts = groupedByDay[day]; // Explicitly type this as Forecast[]
+                return (
+                    <div key={day} className="daily-forecast">
+                        <h3>{day}</h3>
+                        <div className="forecast">
+                            {forecasts.map((forecast: Forecast) => {
+                                const iconUrl = `${process.env.OPENWEATHER_IMAGE_BASE_URL}${forecast.weather[0].icon}@2x.png`; // Use the env variable
+                                return (
+                                    <div key={forecast.dt} className="forecast-item">
+                                        <h4>{new Date(forecast.dt * 1000).toLocaleTimeString()}</h4>
+                                        <Image
+                                            src={iconUrl}
+                                            alt={forecast.weather[0].description}
+                                            width={100}
+                                            height={100}
+                                            priority
+                                        />
+                                        <p>{forecast.weather[0].description}</p>
+                                        <p>{forecast.main.temp}°F</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })}
         </div>
     );
-}
+};
+
+export default WeatherPage;
