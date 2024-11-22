@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type WeatherDescription = {
     description: string;
@@ -67,9 +68,12 @@ export default async function WeatherPage({ params }: { params: { zip: string } 
                         const date = new Date(weather.dt * 1000); // Convert timestamp to readable date
                         return (
                             <div className="weather-card" key={weather.dt}>
-                                <img
+                                <Image
                                     src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
                                     alt={weather.weather[0].description}
+                                    width={100}
+                                    height={100}
+                                    priority
                                 />
                                 <h3>{date.toLocaleString()}</h3>
                                 <p className="temp">{weather.main.temp}°F</p>
