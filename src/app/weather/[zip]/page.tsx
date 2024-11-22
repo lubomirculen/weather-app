@@ -22,8 +22,6 @@ interface Forecast {
 const WeatherPage = async ({ params }: { params: Promise<{ zip: string }> }) => {
     const zip = (await params).zip;
 
-    console.log('Fetching forecast for zip:', zip); // Log the zip code
-
     // Fetch the 5-day forecast data from OpenWeather API
     const response = await fetch(
         `https://api.openweathermap.org/data/2.5/forecast?zip=${zip},us&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}&units=imperial`
@@ -35,7 +33,6 @@ const WeatherPage = async ({ params }: { params: Promise<{ zip: string }> }) => 
     }
 
     const data = await response.json();
-    console.log('API forecast data:', data); // Log the full API response for inspection
 
     // Check if data is as expected
     if (!data || !data.list || data.list.length === 0) {

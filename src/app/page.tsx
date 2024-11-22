@@ -5,14 +5,12 @@ import ZipCodeForm from '@/components/ZipCodeForm';
 
 // Server-side homepage component
 export default function HomePage() {
-
-    console.log('API Key:', process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY);
     return (
         <div className="bg-light py-10">
             <div className="container">
                 <h1 className="text-center">Weather App</h1>
 
-                <p className="text-center">Enter a US Zip Code to view the weather forecast.</p>
+                <p className="text-center">Enter a US Zip Code to view a 3-hour forecast for the next 5 days for the given area.</p>
 
                 {/* Embed the Client Component here
                  Note: this is needed as a client component because the task strictly defines URLs in form

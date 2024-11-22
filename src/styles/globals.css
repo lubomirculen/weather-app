@@ -184,6 +184,7 @@ p {
     border-radius: 8px;
     text-align: center;
     width: 150px;
+    background-color: #50b1dc;
 }
 
 .forecast-item h4 {
