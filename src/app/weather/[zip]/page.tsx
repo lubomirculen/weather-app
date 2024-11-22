@@ -19,7 +19,12 @@ interface Forecast {
     main: Main;
 }
 
-const WeatherPage = async ({ params }: { params: { zip: string } }) => {
+// Define types for the page params
+interface WeatherPageProps {
+    params: { zip: string };
+}
+
+const WeatherPage = async ({ params }: WeatherPageProps) => {
     const zip = params.zip;
 
     console.log('Fetching forecast for zip:', zip); // Log the zip code
